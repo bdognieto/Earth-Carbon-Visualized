@@ -1,0 +1,9 @@
+.DS_Store
+.ipynb_checkpoints/
+
+# huge climate files
+*.nc
+*.zarr
+
+# python cache
+__pycache__/
