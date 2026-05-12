@@ -7,7 +7,7 @@ Promise.all([
 
   co2Data.forEach(d => {
     d.co2mass = +d.co2mass;
-    d.year = new Date(d.time).getFullYear();
+    d.year = +d.year;
   });
 
   clandData.forEach(d => {
@@ -41,14 +41,14 @@ Promise.all([
     .attr("transform", `translate(${margin.left}, 0)`)
     .call(d3.axisLeft(y));
 
-  const line = d3.line()
-    .x(d => x(d.year))
-    .y(d => y(d.co2mass));
-
-  svg.append("path")
-    .datum(co2Data)
+  const grouped = d3.group(co2Data, d => d.scenario);
+  
+  svg.selectAll(".co2-line")
+    .data(grouped)
+    .join("path")
+    .attr("class", "co2-line")
     .attr("fill", "none")
     .attr("stroke", "steelblue")
     .attr("stroke-width", 2)
-    .attr("d", line);
+    .attr("d", ([scenario, values]) => line(values));
 });
