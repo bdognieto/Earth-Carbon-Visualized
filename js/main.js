@@ -107,4 +107,28 @@ Promise.all([
       .attr("y", 5)
       .text(scenario);
   });
+
+  const mapWidth = 900;
+  const mapHeight = 450;
+
+  const mapSvg = d3.select("#carbon-map")
+    .append("svg")
+    .attr("width", mapWidth)
+    .attr("height", mapHeight);
+
+  const projection = d3.geoNaturalEarth1()
+    .scale(170)
+    .translate([mapWidth / 2, mapHeight / 2]);
+
+  const colorScale = d3.scaleSequential(d3.interpolateYlGn)
+    .domain(d3.extent(clandData, d => d.cLand));
+
+  mapSvg.selectAll("circle")
+    .data(clandData)
+    .join("circle")
+    .attr("cx", d => projection([d.longitude, d.latitude])[0])
+    .attr("cy", d => projection([d.longitude, d.latitude])[1])
+    .attr("r", 1.5)
+    .attr("fill", d => colorScale(d.cLand))
+    .attr("opacity", 0.7);
 });
