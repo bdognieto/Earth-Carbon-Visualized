@@ -60,5 +60,8 @@ Promise.all([
     .attr("fill", "none")
     .attr("stroke", "steelblue")
     .attr("stroke-width", 2)
-    .attr("d", ([scenario, values]) => line(values));
+    .attr("d", ([scenario, values]) => {
+      values.sort((a, b) => a.year - b.year);
+       return line(values);
+    });
 });
