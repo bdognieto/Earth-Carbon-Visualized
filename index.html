@@ -2,21 +2,126 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Earth Carbon Visualized</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <h1>Earth Carbon Visualized</h1>
+  <header>
+    <h1>Where Does Carbon Go — and What Does It Cost Us?</h1>
+    <p class="subtitle">
+      Exploring Earth's carbon cycle under two futures: a moderate emissions path
+      <span class="pill ssp245">SSP2-4.5</span> vs. a high-emissions path
+      <span class="pill ssp585">SSP5-8.5</span>
+    </p>
+  </header>
 
-  <section>
-    <h2>Atmospheric CO₂ Over Time</h2>
-    <div id="co2-chart"></div>
+  <div class="controls">
+    <span class="control-label">Show scenarios:</span>
+    <button class="toggle-btn active" data-scenario="historical">Historical</button>
+    <button class="toggle-btn active" data-scenario="ssp245">SSP2-4.5</button>
+    <button class="toggle-btn active" data-scenario="ssp585">SSP5-8.5</button>
+  </div>
+
+  <div class="charts-row">
+    <section class="chart-panel">
+      <h2>Atmospheric CO₂ Mass</h2>
+      <p class="chart-desc">Total CO₂ in the atmosphere (×10¹⁵ kg). <strong>Brush to zoom</strong> the time range — all charts follow.</p>
+      <div id="co2-chart"></div>
+    </section>
+
+    <section class="chart-panel">
+      <h2>Global Mean Temperature</h2>
+      <p class="chart-desc">Near-surface air temperature (°C). Rising CO₂ drives warming — the gap between scenarios widens after 2050.</p>
+      <div id="tas-chart"></div>
+    </section>
+  </div>
+
+  <div class="charts-row charts-row--single">
+    <section class="chart-panel chart-panel--wide">
+      <h2>Ocean CO₂ Uptake</h2>
+      <p class="chart-desc">Mean flux of CO₂ from atmosphere into ocean (g m⁻² yr⁻¹). The ocean acts as a carbon sink — but its capacity weakens under high emissions.</p>
+      <div id="fgco2-chart"></div>
+    </section>
+  </div>
+
+  <section class="map-section">
+    <h2>Global Land Carbon Distribution</h2>
+    <p class="chart-desc">Spatial distribution of terrestrial carbon storage (kg m⁻²). <strong>Scroll to zoom · drag to pan · hover for values.</strong></p>
+    <div id="carbon-map"></div>
   </section>
 
-  <section>
-    <h2>Global Land Carbon Distribution</h2>
-    <div id="carbon-map"></div>
+  <section class="brush-context">
+    <h2 class="sr-only">Time Range Selector</h2>
+    <p class="chart-desc context-label">Drag to select a time window — all three charts above will zoom in.</p>
+    <div id="brush-chart"></div>
+  </section>
+
+  <section class="writeup">
+    <h2>About This Visualization</h2>
+
+    <h3>Rationale for Design Decisions</h3>
+    <p>
+      The central question — <em>where does carbon go, and what does it cost us?</em> — motivated a
+      three-panel timeseries layout that traces the carbon cycle from source to consequence.
+      Atmospheric CO₂ mass and global temperature sit in the top row because their correlation is
+      the most direct causal link in climate science. Ocean CO₂ uptake sits below as the primary
+      absorber that buffers how much CO₂ remains in the atmosphere. A spatial dot-map of historical
+      land carbon storage grounds the abstract timeseries in physical geography.
+    </p>
+    <p>
+      We chose <strong>line charts over bar charts or area charts</strong> because we are comparing
+      continuous timeseries across scenarios. Color encodes scenario identity consistently across all
+      three panels (gray = historical, orange = SSP2-4.5, red = SSP5-8.5), so the reader builds an
+      immediate mental model that carries across every view.
+    </p>
+    <p>
+      The key interaction is <strong>linked brushing on the context strip</strong>: selecting a time
+      range on the bottom overview zooms all three timeseries charts simultaneously. This lets users compare the
+      scenarios at any temporal resolution — from the full 1850–2100 arc down to a specific decade.
+      A <strong>crosshair tooltip</strong> on mousemove shows exact values for all active scenarios
+      at the hovered year, fulfilling the details-on-demand requirement without cluttering the chart
+      permanently. <strong>Scenario toggle buttons</strong> allow readers to isolate or compare
+      specific pathways.
+    </p>
+    <p>
+      The spatial land carbon map uses a <strong>Natural Earth projection</strong> with a
+      yellow-green sequential color scale, which perceptually encodes carbon density intuitively
+      (darker = more carbon). Zoom and pan via <code>d3.zoom()</code> let users drill into
+      specific regions; a tooltip on hover gives exact latitude, longitude, and carbon density.
+    </p>
+    <p>
+      Alternatives considered: a globe projection (harder to read precise locations), a choropleth
+      by country (loses sub-national spatial variation), and a heatmap grid (looked too abstract).
+      The dot-map approach preserves the actual CMIP6 grid resolution and makes sparse polar regions
+      legible.
+    </p>
+
+    <h3>Development Process</h3>
+    <p>
+      Data was sourced from the
+      <a href="https://pangeo-data.github.io/pangeo-cmip6-cloud/" target="_blank">CMIP6 cloud-hosted Zarr archive</a>
+      on Google Cloud Storage, accessed via <code>gcsfs</code> and <code>xarray</code> in Python.
+      Variables extracted: <code>co2mass</code> and <code>tas</code> from GFDL-CM4;
+      <code>fgco2</code> from GFDL-ESM4 (<code>esm-hist</code> for the historical period,
+      SSP2-4.5 and SSP5-8.5 for projections); and the <code>cLand</code> spatial mean
+      from GFDL-ESM4 historical for the land carbon map. All timeseries were aggregated
+      to annual global means and exported as CSV files for browser loading. Data was aggregated to annual global means
+      and exported as CSV files for browser loading.
+    </p>
+    <p>
+      The front-end was built entirely in <strong>D3.js v7</strong> with no other plotting
+      libraries. Approximately <strong>20 person-hours</strong> were spent on the project total:
+      roughly 6 hours on data exploration and extraction (Python/xarray pipeline),
+      8 hours on the D3 visualization (linked brushing and multi-panel coordination took the
+      most time), 3 hours on layout/styling, and 3 hours on write-up and deployment.
+    </p>
+    <p>
+      The most technically challenging aspect was coordinating the <strong>brush-zoom interaction
+      across three independent SVGs</strong> sharing a single x-scale domain, while also keeping
+      tooltip crosshairs synchronized across panels on mousemove.
+    </p>
   </section>
 
   <script src="https://d3js.org/d3.v7.min.js"></script>
