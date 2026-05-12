@@ -31,6 +31,14 @@ Promise.all([
     .attr("width", width)
     .attr("height", height);
 
+  const x = d3.scaleLinear()
+    .domain(d3.extent(co2Data, d => d.year))
+    .range([margin.left, width - margin.right]);
+
+  const y = d3.scaleLinear()
+    .domain(d3.extent(co2Data, d => d.co2mass))
+    .range([height - margin.bottom, margin.top]);
+
   svg.append("g")
     .attr("transform", `translate(0, ${height - margin.bottom})`)
     .call(d3.axisBottom(x).tickFormat(d3.format("d")));
@@ -53,12 +61,4 @@ Promise.all([
     .attr("stroke", "steelblue")
     .attr("stroke-width", 2)
     .attr("d", ([scenario, values]) => line(values));
-
-  const x = d3.scaleLinear()
-    .domain(d3.extent(co2Data, d => d.year))
-    .range([margin.left, width - margin.right]);
-
-  const y = d3.scaleLinear()
-    .domain(d3.extent(co2Data, d => d.co2mass))
-    .range([height - margin.bottom, margin.top]);
 });
