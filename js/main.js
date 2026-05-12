@@ -41,6 +41,10 @@ Promise.all([
     .attr("transform", `translate(${margin.left}, 0)`)
     .call(d3.axisLeft(y));
 
+  const line = d3.line()
+    .x(d => x(d.year))
+    .y(d => y(d.co2mass));
+
   const grouped = d3.group(co2Data, d => d.scenario);
   
   svg.selectAll(".co2-line")
