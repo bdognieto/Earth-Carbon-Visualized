@@ -10,6 +10,12 @@ Promise.all([
     d.year = +d.year;
   });
 
+  co2Data = co2Data.filter(d =>
+    Number.isFinite(d.year) &&
+    Number.isFinite(d.co2mass) &&
+    d.scenario
+  );
+
   clandData.forEach(d => {
     d.latitude = +d.latitude;
     d.longitude = +d.longitude;
@@ -24,14 +30,6 @@ Promise.all([
     .append("svg")
     .attr("width", width)
     .attr("height", height);
-
-  const x = d3.scaleLinear()
-    .domain(d3.extent(co2Data, d => d.year))
-    .range([margin.left, width - margin.right]);
-
-  const y = d3.scaleLinear()
-    .domain(d3.extent(co2Data, d => d.co2mass))
-    .range([height - margin.bottom, margin.top]);
 
   svg.append("g")
     .attr("transform", `translate(0, ${height - margin.bottom})`)
@@ -55,4 +53,12 @@ Promise.all([
     .attr("stroke", "steelblue")
     .attr("stroke-width", 2)
     .attr("d", ([scenario, values]) => line(values));
+
+  const x = d3.scaleLinear()
+    .domain(d3.extent(co2Data, d => d.year))
+    .range([margin.left, width - margin.right]);
+
+  const y = d3.scaleLinear()
+    .domain(d3.extent(co2Data, d => d.co2mass))
+    .range([height - margin.bottom, margin.top]);
 });
